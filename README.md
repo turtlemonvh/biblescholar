@@ -22,5 +22,14 @@ python batchprocess.py
 ## TODO
 
 * Check the `search` README for more TODOs
+* Check for errors in scraping utilities; audit by looking for duplicated or missing verses (dict diff)
 
+```
+# This is suspicious...
+$ wc -l *.tsv
+   30926 HCSB.tsv
+   31102 KJV.tsv
+   30852 NIV.tsv
+   92880 tota
+```
 
