@@ -4,8 +4,8 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/blevesearch/bleve"
-	"os"
 	"io"
+	"os"
 	"path/filepath"
 	"unicode/utf8"
 )
@@ -47,6 +47,7 @@ func IndexFromTSVs(index bleve.Index, dirpath string) (int, error) {
 
 		// FIXME: Read in a line at a time, and feed in directly to indexer
 		// FIXME: Use the bulk indexer for performance improvements
+		b := index.NewBatch()
 		for {
 			record, err := r.Read()
 			if err != nil {
@@ -57,15 +58,27 @@ func IndexFromTSVs(index bleve.Index, dirpath string) (int, error) {
 			}
 
 			verse := NewVerseFromLine(record)
-			index.Index(verse.Id(), verse)
+			b.Index(verse.Id(), verse)
 
 			nindexedPerFile++
 			nindexed++
 
-			if nindexed%10 == 0 {
+			if nindexed%100 == 0 {
+				err := index.Batch(b)
+				if err != nil {
+					return nindexed, err
+				}
+				b = index.NewBatch()
 				fmt.Printf("Indexed %d records from: %s [ %d total ] \n", nindexedPerFile, match, nindexed)
 			}
 		}
+
+		// CLeanup batch
+		err = index.Batch(b)
+		if err != nil {
+			return nindexed, err
+		}
+		fmt.Printf("Indexed %d records from: %s [ %d total ] \n", nindexedPerFile, match, nindexed)
 	}
 
 	return nindexed, nil
