@@ -3,6 +3,10 @@ import sys
 import re
 from pyquery import PyQuery as pq
 
+'''
+Get chapter listing from a directory page.  Each item will be a tsv with fields: `book, chapter, rel_url`
+'''
+
 urls = dict()
 urls['ESV'] = "https://www.biblegateway.com/versions/English-Standard-Version-ESV-Bible/#booklist"
 urls['NIV'] = "https://www.biblegateway.com/versions/New-International-Version-NIV-Bible/#booklist"

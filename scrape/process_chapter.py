@@ -12,12 +12,6 @@ This function takes a relative url and extracts all verses from that page as a t
 $ export PYTHONIOENCODING=UTF-8
 $ python process_chapter.py 'Genesis' '1' '/passage/?search=Genesis+1&version=ESV' > gen1.tsv
 
-Some verses end up like this:
-
-Genesis 2       4        These are the generations
-Genesis 2       4       of the heavens and the earth when they were created,
-Genesis 2       4       in the day that the Lord God made the earth and the heavens.
-
 Doesn't handle multi-downloads; just goes through each version for now
 
 """
