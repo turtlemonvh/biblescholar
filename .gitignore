@@ -1,3 +1,4 @@
+*.pyc
 verses.bleve
 search/command/command
 downloads
