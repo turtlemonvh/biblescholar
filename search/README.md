@@ -6,24 +6,21 @@ A go application using bleve to index tsvs of Bible verses.
 
 ```
 # Set up build path
-ln -s $(pwd) $GOPATH/src/github.com/turtlemonvh/bblsearch
+ln -s $(pwd) $GOPATH/src/github.com/turtlemonvh/biblescholar
 
 # Go to buildpath and build
-cd $GOPATH/src/github.com/turtlemonvh/bblsearch/command
+cd $GOPATH/src/github.com/turtlemonvh/biblescholar/command
 go build .
 
 # cd back to starting location
 cd -
 
 # Run with tsv files downloaded
-# Run the search command using files in the "downloads" directory
-command/command index downloads/
-
+# Run the index command using tsv files in the root directory
+command/command index -d ..
 
 ```
 
 ## TODO
 
-* Setup search in addition to indexes
-* Make indexing work per tsv instead of gathering all items at once
-
+* Setup search in addition to indexing

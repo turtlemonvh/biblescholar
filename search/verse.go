@@ -1,4 +1,4 @@
-package bblsearch
+package biblescholar
 
 import (
 	"fmt"

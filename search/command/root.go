@@ -5,9 +5,13 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/turtlemonvh/bblsearch"
+	"github.com/turtlemonvh/biblescholar"
 	"os"
 )
+
+/*
+Project is called `biblescholar`. The command line interface is called `bblsearch`.
+*/
 
 var searchCmdV *cobra.Command
 
@@ -30,7 +34,6 @@ func init() {
 	searchCmdV = RootCmd
 
 	// FIXME: Add support for multiple outputs and handling log levels via command line or env variable
-	// https://golang.org/src/io/multi.go?s=1355:1397#L47
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.WarnLevel)
 
@@ -57,16 +60,12 @@ var indexCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		viper.BindPFlag("data-dir", cmd.Flags().Lookup("data-dir"))
 
-		index := bblsearch.CreateOrOpenIndex()
+		index := biblescholar.CreateOrOpenIndex()
 		fmt.Println("Adding content to: ", index)
 
-		verses, _ := bblsearch.VersesFromTSVs(viper.GetString("data-dir"))
-		for verseIndex, verse := range verses {
-			if verseIndex%10 == 0 {
-				fmt.Printf("Indexed %d of %d [ %3.2f %% ] \n", verseIndex, len(verses), float64(verseIndex)/float64(len(verses)))
-			}
-
-			index.Index(verse.Id(), verse)
+		_, err := biblescholar.IndexFromTSVs(index, viper.GetString("data-dir"))
+		if err != nil {
+			log.Fatal(err)
 		}
 	},
 }

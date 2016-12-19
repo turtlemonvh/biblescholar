@@ -1,10 +1,11 @@
-package bblsearch
+package biblescholar
 
 import (
 	"encoding/csv"
 	"fmt"
 	"github.com/blevesearch/bleve"
 	"os"
+	"io"
 	"path/filepath"
 	"unicode/utf8"
 )
@@ -23,36 +24,49 @@ func CreateOrOpenIndex() bleve.Index {
 	return index
 }
 
-func VersesFromTSVs(dirpath string) ([]Verse, error) {
-	var verses []Verse
+func IndexFromTSVs(index bleve.Index, dirpath string) (int, error) {
+	nindexed := 0
 	matches, err := filepath.Glob(fmt.Sprintf("%s/*.tsv", dirpath))
 	if err != nil {
-		return verses, err
+		return nindexed, err
 	}
 
 	for _, match := range matches {
-		fmt.Println("Records from: ", match)
+		fmt.Println("Starting to index records from: ", match)
+		nindexedPerFile := 0
 
 		f, err := os.Open(match)
 		if err != nil {
-			return verses, err
+			return nindexed, err
 		}
 
 		r := csv.NewReader(f)
 
 		tabRune, _ := utf8.DecodeRuneInString("\t")
 		r.Comma = tabRune
-		records, err := r.ReadAll()
-		if err != nil {
-			return verses, err
-		}
 
-		for _, record := range records {
-			verses = append(verses, NewVerseFromLine(record))
-		}
+		// FIXME: Read in a line at a time, and feed in directly to indexer
+		// FIXME: Use the bulk indexer for performance improvements
+		for {
+			record, err := r.Read()
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				return nindexed, err
+			}
 
-		fmt.Printf("Found %d records from: %s\n", len(records), match)
+			verse := NewVerseFromLine(record)
+			index.Index(verse.Id(), verse)
+
+			nindexedPerFile++
+			nindexed++
+
+			if nindexed%10 == 0 {
+				fmt.Printf("Indexed %d records from: %s [ %d total ] \n", nindexedPerFile, match, nindexed)
+			}
+		}
 	}
 
-	return verses, nil
+	return nindexed, nil
 }
