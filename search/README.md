@@ -18,7 +18,7 @@ make darwin
 
 ```bash
 # Run the index command using ESV tsv files
-biblescholar index -d ../downloads/*-ESV.tsv
+artifacts/biblescholar-darwin-amd64 index -d ../downloads/*-ESV.tsv
 ```
 
 ### Text search
@@ -33,7 +33,7 @@ bleve query verses.bleve "for God so loved the world"
 ```bash
 # Start server
 cd command
-./biblescholar server -i ../../verses.bleve
+artifacts/biblescholar-darwin-amd64 server -i ../../verses.bleve
 
 # Example alexa request
 cat ../test/exampleAlexaRequest.json | jq .
@@ -44,10 +44,7 @@ curl -s -X POST localhost:8000/alexa/search -d '@../test/exampleAlexaRequest.jso
 
 ## TODO
 
-* Setup search in addition to indexing
-* Add makefile including githash and branch in build
 * vendor deps for commands
-* rename binary: `go build -o biblescholar .`
 * pass ctx through request chain into search object, use to trace log items together, handle request termination
 
 ## Nice to haves
