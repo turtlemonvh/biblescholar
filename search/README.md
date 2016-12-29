@@ -44,7 +44,6 @@ curl -s -X POST localhost:8000/alexa/search -d '@../test/exampleAlexaRequest.jso
 
 ## TODO
 
-* vendor deps for commands
 * pass ctx through request chain into search object, use to trace log items together, handle request termination
 
 ## Nice to haves

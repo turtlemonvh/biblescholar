@@ -1,6 +1,7 @@
 *.pyc
 verses.bleve
 search/artifacts
+search/command/vendor
 downloads
 *.csv
 *.tsv
