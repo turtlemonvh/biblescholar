@@ -1,0 +1,53 @@
+{
+    "version": "1.0",
+    "session": {
+        "new": true,
+        "sessionId": "string",
+        "application": {
+            "applicationId": "string"
+        },
+        "attributes": {
+            "string": {}
+        },
+        "user": {
+            "userId": "string",
+            "accessToken": "string"
+        }
+    },
+    "context": {
+        "System": {
+            "application": {
+                "applicationId": "string"
+            },
+            "user": {
+                "userId": "string",
+                "accessToken": "string"
+            },
+            "device": {
+                "supportedInterfaces": {
+                    "AudioPlayer": {}
+                }
+            }
+        },
+        "AudioPlayer": {
+            "token": "string",
+            "offsetInMilliseconds": 0,
+            "playerActivity": "string"
+        }
+    },
+    "request": {
+        "type": "IntentRequest",
+        "requestId": "string",
+        "timestamp": "2016-12-38T00:00",
+        "locale": "en-US",
+        "intent": {
+            "name": "SearchBible",
+            "slots": {
+                "QueryPhrase": {
+                    "name": "QueryPhrase",
+                    "value": "for God so loved the world"
+                }
+            }
+        }
+    }
+}

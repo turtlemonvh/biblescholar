@@ -10,9 +10,9 @@ import (
 	"unicode/utf8"
 )
 
-const indexName = "verses.bleve"
+const DefaultIndexName = "verses.bleve"
 
-func CreateOrOpenIndex() bleve.Index {
+func CreateOrOpenIndex(indexName string) bleve.Index {
 	var index bleve.Index
 	if _, err := os.Stat(indexName); os.IsNotExist(err) {
 		mapping := bleve.NewIndexMapping()
