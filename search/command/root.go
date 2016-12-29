@@ -5,8 +5,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/turtlemonvh/biblescholar"
-	"github.com/turtlemonvh/biblescholar/server"
+	"github.com/turtlemonvh/biblescholar/search"
+	"github.com/turtlemonvh/biblescholar/search/server"
 	"os"
 )
 

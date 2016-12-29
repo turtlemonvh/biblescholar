@@ -9,12 +9,15 @@ GOARCH = amd64
 
 COMMIT=$(shell git rev-parse HEAD)
 BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
-
-# Symlink into GOPATH
 GITHUB_USERNAME=turtlemonvh
-BUILD_DIR=${GOPATH}/src/github.com/${GITHUB_USERNAME}/${BINARY}
-CURRENT_DIR=$(shell pwd)
-BUILD_DIR_LINK=$(shell readlink ${BUILD_DIR})
+
+# For symlinks
+PROJECT_BASE_DIR=$(shell dirname $$(pwd))
+GOPATH_BASE_DIR=${GOPATH}/src/github.com/${GITHUB_USERNAME}/biblescholar
+GOPATH_BASE_DIR_LINK=$(shell readlink ${GOPATH_BASE_DIR})
+
+# Core path variables
+BUILD_DIR=${GOPATH}/src/github.com/${GITHUB_USERNAME}/biblescholar/search
 BINARY_BUILD_DIR=${BUILD_DIR}/command
 ARTIFACT_DIR=${BUILD_DIR}/artifacts
 
@@ -25,13 +28,13 @@ LDFLAGS = -ldflags "-X main.buildCommit=${COMMIT} -X main.buildBranch=${BRANCH}"
 all: link clean test vet linux darwin windows
 
 link:
-	BUILD_DIR=${BUILD_DIR}; \
-	BUILD_DIR_LINK=${BUILD_DIR_LINK}; \
-	CURRENT_DIR=${CURRENT_DIR}; \
-	if [ "$${BUILD_DIR_LINK}" != "$${CURRENT_DIR}" ]; then \
-	    echo "Fixing symlinks for build"; \
-	    rm -f $${BUILD_DIR}; \
-	    ln -s $${CURRENT_DIR} $${BUILD_DIR}; \
+	PROJECT_BASE_DIR=${PROJECT_BASE_DIR} ; \
+	GOPATH_BASE_DIR=${GOPATH_BASE_DIR} ; \
+	GOPATH_BASE_DIR_LINK=${GOPATH_BASE_DIR_LINK} ; \
+	if [ "$${GOPATH_BASE_DIR_LINK}" != "$${PROJECT_BASE_DIR}" ] ; then \
+	    echo "Fixing symlinks for build" ; \
+	    rm -f $${GOPATH_BASE_DIR} ; \
+	    ln -s $${PROJECT_BASE_DIR} $${GOPATH_BASE_DIR} ; \
 	fi
 
 artifactdir:
