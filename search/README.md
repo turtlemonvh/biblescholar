@@ -7,12 +7,11 @@ A go application using bleve to index tsvs of Bible verses.
 ### Building
 
 ```bash
-# Set up build path
-ln -s $(pwd) $GOPATH/src/github.com/turtlemonvh/biblescholar
+# Do everything
+make
 
-# Go to buildpath and build
-cd $GOPATH/src/github.com/turtlemonvh/biblescholar/command
-go build -o biblescholar .
+# Just build for mac
+make darwin
 ```
 
 ### Indexing

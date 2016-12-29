@@ -1,7 +1,6 @@
 *.pyc
 verses.bleve
-search/command/command
-search/command/biblescholar
+search/artifacts
 downloads
 *.csv
 *.tsv

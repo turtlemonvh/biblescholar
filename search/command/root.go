@@ -54,7 +54,7 @@ var RootCmd = &cobra.Command{
 	Short: "bblsearch is a search interface for the Bible",
 	Run: func(cmd *cobra.Command, args []string) {
 		InitializeConfig()
-		fmt.Println("bblsearch v0.1")
+		fmt.Printf("bblsearch %s (%s)\n", buildBranch, buildCommit)
 	},
 }
 
