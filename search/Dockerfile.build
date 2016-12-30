@@ -1,0 +1,30 @@
+# A version of the dockerfile that builds the application inside
+# Used to test if cross compiling was a problem. It was not the problem.
+
+FROM golang:1.7
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libleveldb-dev \
+        libstemmer-dev \
+        libicu-dev \
+        build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /go/src/app
+WORKDIR /go/src/app
+COPY . /go/src/app
+
+RUN go-wrapper download
+RUN mkdir -p /usr/local/bin
+
+# FIXME: Include build flags
+RUN cd command && \
+    go build -o biblescholar-linux-amd64 && \
+    cp biblescholar-linux-amd64 /usr/local/bin/
+
+WORKDIR /usr/local/bin/
+
+# Just copy data in
+COPY verses.bleve /data/verses.bleve
+
+CMD ["/usr/local/bin/biblescholar-linux-amd64", "server", "-p", "80", "-i", "/data/verses.bleve"]

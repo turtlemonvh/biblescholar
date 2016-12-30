@@ -217,6 +217,7 @@ func setResponseText(ro *gabs.Container, txt string, title string) error {
 
 // Respond to search requests
 // FIXME: Add tests
+// FIXME: Break down into smaller functions
 func alexaSearchHandler(s *ServerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		resp := s.getNewResponseTemplate()

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"github.com/blevesearch/bleve"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/turtlemonvh/biblescholar/search"
@@ -88,11 +89,23 @@ var serverCmd = &cobra.Command{
 		viper.BindPFlag("port", cmd.Flags().Lookup("port"))
 		viper.BindPFlag("index-path", cmd.Flags().Lookup("index-path"))
 
+		// Always text logs, because docker thinks there is a tty
+		// https://godoc.org/github.com/sirupsen/logrus#TextFormatter
+		log.SetFormatter(&log.TextFormatter{
+			DisableColors: true,
+			FullTimestamp: true,
+		})
+
+		idx, err := bleve.Open(viper.GetString("index-path"))
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		svr := server.ServerConfig{
 			Port:        viper.GetInt("port"),
 			BuildCommit: buildCommit,
 			BuildBranch: buildBranch,
-			Index:       biblescholar.CreateOrOpenIndex(viper.GetString("index-path")),
+			Index:       idx,
 		}
 		svr.StartServer()
 	},

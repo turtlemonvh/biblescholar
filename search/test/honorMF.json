@@ -1,0 +1,29 @@
+{
+  "session": {
+    "sessionId": "SessionId.f1e25d22-6dee-40b6-8200-72362f17236d",
+    "application": {
+      "applicationId": "amzn1.ask.skill.30c203ed-c0f7-432e-bcdb-23ee1ece38ab"
+    },
+    "attributes": {},
+    "user": {
+      "userId": "amzn1.ask.account.AERMERKUHGHICBXDVKVUQ5SNAEJBS46SE4AR42ZSGE4WRQGZRD6UYDK3TADE2LH7PWGYNPQJNLNUTMOCAICCRSGSSZ356NTBC6RZM527NWJAITNR37OYJJBU4O4WD6KEFD74LODJLTL4OXBIBZU2FJNQK5CWKPOI4MU5NDLU5QCIB66L4IOCLTSYVURLEYTABVFDHVCZAOV66LY"
+    },
+    "new": true
+  },
+  "request": {
+    "type": "IntentRequest",
+    "requestId": "EdwRequestId.bf3f9d60-bca8-4c74-93e5-3e0abf785c1e",
+    "locale": "en-US",
+    "timestamp": "2016-12-30T07:47:38Z",
+    "intent": {
+      "name": "SearchBible",
+      "slots": {
+        "QueryPhrase": {
+          "name": "QueryPhrase",
+          "value": "honor thy father and mother"
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

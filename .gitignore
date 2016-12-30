@@ -1,7 +1,15 @@
 *.pyc
+.DS_Store
+.aws
 verses.bleve
 search/artifacts
 search/command/vendor
+search/biblescholar-*
 downloads
 *.csv
 *.tsv
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

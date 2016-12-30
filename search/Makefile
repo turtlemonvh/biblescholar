@@ -25,7 +25,7 @@ ARTIFACT_DIR=${BUILD_DIR}/artifacts
 LDFLAGS = -ldflags "-X main.buildCommit=${COMMIT} -X main.buildBranch=${BRANCH}"
 
 # Build the project
-all: link clean test vet linux darwin windows
+all: link clean test vet linux darwin windows elbzip
 
 link:
 	PROJECT_BASE_DIR=${PROJECT_BASE_DIR} ; \
@@ -58,6 +58,15 @@ windows: link artifactdir
 	mv ${BINARY}-windows-${GOARCH}.exe ${ARTIFACT_DIR}/ ; \
 	cd - >/dev/null
 
+elbzip: linux
+	# Make elasticbeanstalk artifact
+	# https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/applications-sourcebundle.html
+	rm -f ${ARTIFACT_DIR}/elb.zip
+	cp ${ARTIFACT_DIR}/${BINARY}-linux-${GOARCH} .
+	zip -r ${ARTIFACT_DIR}/elb.zip ${BINARY}-linux-${GOARCH} verses.bleve Dockerfile
+	# Check contents
+	unzip -l ${ARTIFACT_DIR}/elb.zip
+
 test: artifactdir
 	if ! hash go2xunit 2>/dev/null; then go install github.com/tebeka/go2xunit; fi
 	cd ${BUILD_DIR}; \
@@ -79,4 +88,4 @@ fmt:
 clean:
 	-rm -rf ${ARTIFACT_DIR}
 
-.PHONY: link linux darwin windows test vet fmt clean
+.PHONY: link linux darwin windows test vet fmt clean elbzip
