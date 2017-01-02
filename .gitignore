@@ -3,11 +3,13 @@
 .aws
 verses.bleve
 search/artifacts
+search/secrets.*
 search/command/vendor
 search/biblescholar-*
 downloads
 *.csv
 *.tsv
+*.verses
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
