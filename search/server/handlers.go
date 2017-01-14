@@ -181,22 +181,28 @@ func (s *ServerConfig) getNewResponseTemplate() *gabs.Container {
 	return resp
 }
 
-// Handle a general start request with no context
+// Prompt in the case of no set slots
+// Keeps the session open for easier re-prompting
 func (s *ServerConfig) setPromptResponse(c *gin.Context, req *gabs.Container, resp *gabs.Container) {
 	// Keep session open
 	resp.SetP(false, "response.shouldEndSession")
-	if err := setResponseText(
-		resp,
-		"Ask BibleScholar to search for or lookup a phrase.",
-		"BibleScholar Help",
-		true,
-	); err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Error("Error while creating response body.")
-		c.JSON(http.StatusInternalServerError, resp.Data())
-		return
+
+	// Set both the main response object and the prompt
+	for _, op := range []bool{true, false} {
+		if err := setResponseText(
+			resp,
+			"Ask BibleScholar to 'search for' or 'lookup' a phrase.",
+			"BibleScholar Help",
+			op,
+		); err != nil {
+			log.WithFields(log.Fields{
+				"err": err,
+			}).Error("Error while creating response body.")
+			c.JSON(http.StatusInternalServerError, resp.Data())
+			return
+		}
 	}
+
 	c.JSON(http.StatusOK, resp.Data())
 }
 
