@@ -46,8 +46,17 @@ func init() {
 		"index-path", "i", biblescholar.DefaultIndexName,
 		fmt.Sprintf("path to bleve index. Default is: %s", biblescholar.DefaultIndexName),
 	)
+	RootCmd.PersistentFlags().Bool("debug-logging", false, "turn on debug level logging")
 	indexCmd.Flags().StringP("data-dir", "d", "downloads", "directory containing tsv data files to use in indexing")
 	serverCmd.Flags().IntP("port", "p", 8000, "port to run server on")
+}
+
+func HandleLogLevel() {
+	if viper.GetBool("debug-logging") {
+		fmt.Println("Setting log level to debug")
+		log.SetLevel(log.DebugLevel)
+		log.Debug("Set log level to debug")
+	}
 }
 
 var RootCmd = &cobra.Command{
@@ -70,6 +79,9 @@ var indexCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		viper.BindPFlag("data-dir", cmd.Flags().Lookup("data-dir"))
 		viper.BindPFlag("index-path", cmd.Flags().Lookup("index-path"))
+		viper.BindPFlag("debug-logging", cmd.Flags().Lookup("debug-logging"))
+
+		HandleLogLevel()
 
 		index := biblescholar.CreateOrOpenIndex(viper.GetString("index-path"))
 		fmt.Println("Adding content to: ", index)
@@ -88,6 +100,9 @@ var serverCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		viper.BindPFlag("port", cmd.Flags().Lookup("port"))
 		viper.BindPFlag("index-path", cmd.Flags().Lookup("index-path"))
+		viper.BindPFlag("debug-logging", cmd.Flags().Lookup("debug-logging"))
+
+		HandleLogLevel()
 
 		// Always text logs, because docker thinks there is a tty
 		// https://godoc.org/github.com/sirupsen/logrus#TextFormatter

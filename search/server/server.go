@@ -127,6 +127,7 @@ const exampleAlexaRequest string = `
 }
 `
 
+// https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#response-format
 var respTemplate string = `
 {
   "version": "string",
@@ -174,11 +175,7 @@ var respTemplate string = `
 }
 `
 
-const (
-	requestIntentNamePath string = "request.intent.name"
-	requestQueryPath      string = "request.intent.slots.QueryPhrase.value"
-)
-
+// https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#response-object
 func (s *ServerConfig) getNewResponseTemplate() *gabs.Container {
 	alexResp := gabs.New()
 	alexResp.SetP(s.VersionString(), "version")
@@ -187,31 +184,32 @@ func (s *ServerConfig) getNewResponseTemplate() *gabs.Container {
 	// Eventually if they want more results and keep the session open
 	alexResp.SetP(true, "shouldEndSession")
 
-	alexResp.SetP(map[string]interface{}{
-		"type": "PlainText",
-	}, "response.outputSpeech")
-
-	alexResp.SetP(map[string]interface{}{
-		"type": "Simple",
-	}, "response.card")
+	// Remove unused
+	alexResp.DeleteP("response.outputSpeech")
+	alexResp.DeleteP("response.reprompt")
+	alexResp.DeleteP("response.directives")
+	alexResp.DeleteP("response.card.image")
+	alexResp.DeleteP("response.card.text")
 
 	return alexResp
 }
 
 // Probably don't have to return the container object
-func setResponseText(ro *gabs.Container, txt string, title string) error {
-	_, err := ro.SetP(txt, "response.outputSpeech.text")
-	if err != nil {
-		return err
+func setResponseText(ro *gabs.Container, txt string, title string, reprompt bool) error {
+	responsePath := "outputSpeech"
+	if reprompt {
+		responsePath = "reprompt"
 	}
-	_, err = ro.SetP(txt, "response.card.content")
-	if err != nil {
-		return err
-	}
-	_, err = ro.SetP(title, "response.card.title")
-	if err != nil {
-		return err
-	}
+
+	ro.SetP(map[string]interface{}{
+		"type": "PlainText",
+		"text": txt,
+	}, fmt.Sprintf("response.%s", responsePath))
+
+	ro.SetP("Simple", "response.card.type")
+	ro.SetP(title, "response.card.title")
+	ro.SetP(txt, "response.card.content")
+
 	return nil
 }
 
@@ -221,155 +219,38 @@ func setResponseText(ro *gabs.Container, txt string, title string) error {
 func alexaSearchHandler(s *ServerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		resp := s.getNewResponseTemplate()
-		if err := setResponseText(resp, "Your request is malformed. Oops.", "Processing Error"); err != nil {
+
+		req, err := gabs.ParseJSONBuffer(c.Request.Body)
+		if err != nil || req == nil {
 			log.WithFields(log.Fields{
 				"err": err,
-			}).Error("Error while creating response body")
-			c.JSON(500, resp.Data())
+				"req": req,
+			}).Error("Error while parsing request body")
+			c.JSON(http.StatusBadRequest, resp.Data())
 			return
 		}
 
-		jsonParsed, err := gabs.ParseJSONBuffer(c.Request.Body)
+		t, err := getRequestType(req)
 		if err != nil {
 			log.WithFields(log.Fields{
 				"err": err,
-			}).Error("Error while parsing request body")
-			c.JSON(500, resp.Data())
-			return
-		}
-		if jsonParsed == nil {
-			log.WithFields(log.Fields{
-				"err": "Gabs object is nil",
-			}).Error("Error while parsing request body")
-			c.JSON(500, resp.Data())
+			}).Error("Error getting request type")
+			c.JSON(http.StatusBadRequest, resp.Data())
 			return
 		}
 
-		// Check request has data where we expect
-		if !jsonParsed.ExistsP(requestIntentNamePath) {
+		switch t {
+		case intentRequest:
+			s.handleIntentRequest(c, req, resp)
+		case launchRequest:
+			s.handleLaunchRequest(c, req, resp)
+		case sessionEndedRequest:
+			s.handleSessionEndedRequest(c, req, resp)
+		default:
 			log.WithFields(log.Fields{
-				"path": requestIntentNamePath,
-			}).Error("Required path in request object does not exist")
-			c.JSON(500, resp.Data())
-			return
+				"type": t,
+			}).Error("Unknown request type")
+			c.JSON(http.StatusBadRequest, resp.Data())
 		}
-		if !jsonParsed.ExistsP(requestQueryPath) {
-			log.WithFields(log.Fields{
-				"path": requestQueryPath,
-			}).Error("Required path in request object does not exist")
-			c.JSON(500, resp.Data())
-			return
-		}
-
-		intent, ok := jsonParsed.Path(requestIntentNamePath).Data().(string)
-		if !ok || intent != "SearchBible" {
-			// We only handle this one intent
-			log.WithFields(log.Fields{
-				"intentReceived": intent,
-				"intentExpected": "SearchBible",
-			}).Error("Invalid task intent")
-			c.JSON(500, resp.Data())
-			return
-		}
-
-		queryText, ok := jsonParsed.Path(requestQueryPath).Data().(string)
-		if !ok {
-			log.WithFields(log.Fields{
-				"queryValue": requestQueryPath,
-			}).Error("Invalid query value. Expected string.")
-			c.JSON(500, resp.Data())
-			return
-		}
-
-		// query, limit, skip, explain
-		query := bleve.NewQueryStringQuery(queryText)
-		searchRequest := bleve.NewSearchRequestOptions(query, 10, 0, false)
-		searchRequest.Fields = []string{
-			"Version",
-			"Book",
-			"Chapter",
-			"Verse",
-			"Text",
-		}
-		searchResult, err := s.Index.Search(searchRequest)
-		if err != nil {
-			log.WithFields(log.Fields{
-				"err": err,
-			}).Error("Error while executing search query.")
-
-			if err := setResponseText(resp, "Bible Scholar is experiencing internal errors. Please try again later.", "Processing Error"); err != nil {
-				log.WithFields(log.Fields{
-					"err": err,
-				}).Error("Error while creating response body.")
-				c.JSON(500, resp.Data())
-				return
-			}
-
-			c.JSON(500, resp.Data())
-			return
-		}
-
-		// https://godoc.org/github.com/blevesearch/bleve#SearchResult
-		if len(searchResult.Status.Errors) != 0 {
-			log.WithFields(log.Fields{
-				"errors": searchResult.Status.Errors,
-				"index":  s.Index.Name(),
-				"query":  query,
-			}).Warn("Encountered non-fatal errors when fetching query result.")
-		}
-
-		if searchResult.Hits.Len() < 1 {
-			log.WithFields(log.Fields{
-				"nhits": searchResult.Hits.Len(),
-				"index": s.Index.Name(),
-				"query": query,
-			}).Warn("Did not find any matching results.")
-			if err := setResponseText(
-				resp,
-				"We didn't find any verses matching that phrase. Try a shorter phrase, or try rewording your search phrase.",
-				"No results found",
-			); err != nil {
-				log.WithFields(log.Fields{
-					"err": err,
-				}).Error("Error while creating response body.")
-				c.JSON(500, resp.Data())
-				return
-			}
-			c.JSON(200, resp.Data())
-			return
-		}
-
-		// FIXME: Separate responses for card body and for voice response
-		// https://godoc.org/github.com/blevesearch/bleve/search#DocumentMatch
-		resultObject := searchResult.Hits[0].Fields
-		log.WithFields(log.Fields{
-			"nhits": searchResult.Hits.Len(),
-			"index": s.Index.Name(),
-			"query": query,
-		}).Warn("Found matching results.")
-		if err = setResponseText(
-			resp,
-			fmt.Sprintf("Best match is from %s chapter %d verse %d from the %s translation. %s",
-				resultObject["Book"],
-				int(resultObject["Chapter"].(float64)),
-				int(resultObject["Verse"].(float64)),
-				resultObject["Version"],
-				resultObject["Text"],
-			),
-			fmt.Sprintf("Found match: %s %d:%d (%s)",
-				resultObject["Book"],
-				int(resultObject["Chapter"].(float64)),
-				int(resultObject["Verse"].(float64)),
-				resultObject["Version"],
-			),
-		); err != nil {
-			log.WithFields(log.Fields{
-				"err": err,
-			}).Error("Error while creating response body.")
-			c.JSON(500, resp.Data())
-			return
-		}
-		c.JSON(200, resp.Data())
-		return
 	}
 }
