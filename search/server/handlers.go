@@ -21,6 +21,130 @@ const (
 	requestQueryPath      string = "request.intent.slots.QueryPhrase.value"
 )
 
+// https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference
+const exampleAlexaRequest string = `
+{
+	"version": "1.0",
+	"session": {
+		"new": true,
+		"sessionId": "string",
+		"application": {
+			"applicationId": "string"
+		},
+		"attributes": {
+			"string": {}
+		},
+		"user": {
+			"userId": "string",
+			"accessToken": "string"
+		}
+	},
+	"context": {
+		"System": {
+			"application": {
+				"applicationId": "string"
+			},
+			"user": {
+				"userId": "string",
+				"accessToken": "string"
+			},
+			"device": {
+				"supportedInterfaces": {
+					"AudioPlayer": {}
+				}
+			}
+		},
+		"AudioPlayer": {
+			"token": "string",
+			"offsetInMilliseconds": 0,
+			"playerActivity": "string"
+		}
+	},
+	"request": {
+		"type": "IntentRequest",
+		"requestId": "string",
+		"timestamp": "2016-12-38T00:00",
+		"locale": "en-US",
+		"intent": {
+			"name": "SearchBible",
+			"slots": {
+				"QueryPhrase": {
+					"name": "QueryPhrase",
+					"value": "for God so loved the world"
+				}
+			}
+		}
+	}
+}
+`
+
+// https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#response-format
+var respTemplate string = `
+{
+  "version": "string",
+  "sessionAttributes": {
+    "string": object
+  },
+  "response": {
+    "outputSpeech": {
+      "type": "string",
+      "text": "string",
+      "ssml": "string"
+    },
+    "card": {
+      "type": "string",
+      "title": "string",
+      "content": "string",
+      "text": "string",
+      "image": {
+        "smallImageUrl": "string",
+        "largeImageUrl": "string"
+      }
+    },
+    "reprompt": {
+      "outputSpeech": {
+        "type": "string",
+        "text": "string",
+        "ssml": "string"
+      }
+    },
+    "directives": [
+      {
+        "type": "string",
+        "playBehavior": "string",
+        "audioItem": {
+          "stream": {
+            "token": "string",
+            "url": "string",
+            "offsetInMilliseconds": 0
+          }
+        }
+      }
+    ],
+    "shouldEndSession": boolean
+  }
+}
+`
+
+// Probably don't have to return the container object
+func setResponseText(ro *gabs.Container, txt string, title string, reprompt bool) error {
+	responsePath := "outputSpeech"
+	if reprompt {
+		responsePath = "reprompt.outputSpeech"
+	}
+
+	ro.SetP(map[string]interface{}{
+		"type": "PlainText",
+		"text": txt,
+	}, fmt.Sprintf("response.%s", responsePath))
+
+	ro.SetP("Simple", "response.card.type")
+	ro.SetP(title, "response.card.title")
+	ro.SetP(txt, "response.card.content")
+
+	return nil
+}
+
 // Grab the request type
 // Should be intentRequest or launchRequest
 func getRequestType(req *gabs.Container) (string, error) {
@@ -38,10 +162,29 @@ func getRequestType(req *gabs.Container) (string, error) {
 	return value, nil
 }
 
+// https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#response-object
+func (s *ServerConfig) getNewResponseTemplate() *gabs.Container {
+	resp := gabs.New()
+	resp.SetP(s.VersionString(), "version")
+	resp.SetP(map[string]interface{}{}, "sessionAttributes")
+
+	// Eventually if they want more results and keep the session open
+	resp.SetP(true, "response.shouldEndSession")
+
+	// Remove unused
+	resp.DeleteP("response.outputSpeech")
+	resp.DeleteP("response.reprompt")
+	resp.DeleteP("response.directives")
+	resp.DeleteP("response.card.image")
+	resp.DeleteP("response.card.text")
+
+	return resp
+}
+
 // Handle a general start request with no context
 func (s *ServerConfig) setPromptResponse(c *gin.Context, req *gabs.Container, resp *gabs.Container) {
 	// Keep session open
-	resp.SetP(false, "shouldEndSession")
+	resp.SetP(false, "response.shouldEndSession")
 	if err := setResponseText(
 		resp,
 		"Ask BibleScholar to search for or lookup a phrase.",
@@ -56,6 +199,8 @@ func (s *ServerConfig) setPromptResponse(c *gin.Context, req *gabs.Container, re
 	}
 	c.JSON(http.StatusOK, resp.Data())
 }
+
+// Handlers
 
 // Handle a general start request with no context
 func (s *ServerConfig) handleLaunchRequest(c *gin.Context, req *gabs.Container, resp *gabs.Container) {
@@ -76,7 +221,7 @@ func (s *ServerConfig) handleSessionEndedRequest(c *gin.Context, req *gabs.Conta
 // FIXME: Handle empty slots with a prompt
 func (s *ServerConfig) handleIntentRequest(c *gin.Context, req *gabs.Container, resp *gabs.Container) {
 	// All searches end after 1 request
-	resp.SetP(true, "shouldEndSession")
+	resp.SetP(true, "response.shouldEndSession")
 
 	// Check request has data where we expect
 	if !req.ExistsP(requestIntentNamePath) {

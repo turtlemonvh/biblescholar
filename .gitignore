@@ -6,6 +6,7 @@ search/artifacts
 search/secrets.*
 search/command/vendor
 search/biblescholar-*
+search/vet.report
 downloads
 *.csv
 *.tsv
