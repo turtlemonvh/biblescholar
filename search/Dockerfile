@@ -24,4 +24,4 @@ COPY verses.bleve /data/verses.bleve
 EXPOSE 80
 
 # /data/verses.bleve should be mounted as a volume
-CMD ["/usr/local/bin/biblescholar-linux-amd64", "server", "-p", "80", "-i", "/data/verses.bleve"]
+CMD ["/usr/local/bin/biblescholar-linux-amd64", "server", "-p", "80", "-i", "/data/verses.bleve", "--validate-alexa"]

@@ -49,6 +49,7 @@ func init() {
 	RootCmd.PersistentFlags().Bool("debug-logging", false, "turn on debug level logging")
 	indexCmd.Flags().StringP("data-dir", "d", "downloads", "directory containing tsv data files to use in indexing")
 	serverCmd.Flags().IntP("port", "p", 8000, "port to run server on")
+	serverCmd.Flags().Bool("validate-alexa", false, "should the application validate that requests are from the alexa service?")
 }
 
 func HandleLogLevel() {
@@ -101,6 +102,7 @@ var serverCmd = &cobra.Command{
 		viper.BindPFlag("port", cmd.Flags().Lookup("port"))
 		viper.BindPFlag("index-path", cmd.Flags().Lookup("index-path"))
 		viper.BindPFlag("debug-logging", cmd.Flags().Lookup("debug-logging"))
+		viper.BindPFlag("should-validate-alexa-requests", cmd.Flags().Lookup("validate-alexa"))
 
 		HandleLogLevel()
 
@@ -117,10 +119,11 @@ var serverCmd = &cobra.Command{
 		}
 
 		svr := server.ServerConfig{
-			Port:        viper.GetInt("port"),
-			BuildCommit: buildCommit,
-			BuildBranch: buildBranch,
-			Index:       idx,
+			Port:                viper.GetInt("port"),
+			BuildCommit:         buildCommit,
+			BuildBranch:         buildBranch,
+			Index:               idx,
+			ShouldValidateAlexa: viper.GetBool("should-validate-alexa-requests"),
 		}
 		svr.StartServer()
 	},

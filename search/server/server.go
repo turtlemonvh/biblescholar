@@ -17,9 +17,10 @@ import (
 type ServerConfig struct {
 	Port int
 	// Include index hash here too
-	BuildCommit string
-	BuildBranch string
-	Index       bleve.Index
+	BuildCommit         string
+	BuildBranch         string
+	Index               bleve.Index
+	ShouldValidateAlexa bool
 }
 
 func (s *ServerConfig) VersionString() string {
@@ -77,6 +78,13 @@ func versionHandler(s *ServerConfig) gin.HandlerFunc {
 // FIXME: Break down into smaller functions
 func alexaSearchHandler(s *ServerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if s.ShouldValidateAlexa {
+			if err := s.verifyRequestIsAlexa(c); err != nil {
+				// Actual response is set inside this function
+				return
+			}
+		}
+
 		resp := s.getNewResponseTemplate()
 
 		req, err := gabs.ParseJSONBuffer(c.Request.Body)
