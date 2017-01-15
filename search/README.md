@@ -98,6 +98,7 @@ curl -X GET "$url/search?q=cats%20dogs&size=2&highlight" | jq .
 ## TODO
 
 * Fix issues with glide dependency-locking actively edited sibling modules
+* Work with richer struct types instead of raw gabs objects for request handling
 * Try out running docker locally this way
     * https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_docker-eblocal.html
 * More ebextensions
@@ -113,6 +114,7 @@ curl -X GET "$url/search?q=cats%20dogs&size=2&highlight" | jq .
 * look into streaming back a recording of a verse (from S3) instead of having alexa read it
 * read a section of scripture
 
+    ```
     // optionally "from the {translation} translation"
     range
     - read {book} {chapter} {verse} to {verse}
@@ -123,4 +125,5 @@ curl -X GET "$url/search?q=cats%20dogs&size=2&highlight" | jq .
     chapter
     - read {book} {chapter}
     - read {book} chapter {chapter}
+    ```
 
