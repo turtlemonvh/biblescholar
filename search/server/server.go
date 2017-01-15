@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"runtime"
 	"time"
@@ -20,6 +21,7 @@ import (
 var (
 	nAlexRequests metrics.Counter
 	nRestRequests metrics.Counter
+	nHtmlRequests metrics.Counter
 )
 
 func init() {
@@ -28,6 +30,9 @@ func init() {
 
 	nRestRequests = metrics.NewCounter()
 	metrics.Register("nRestRequests", nRestRequests)
+
+	nHtmlRequests = metrics.NewCounter()
+	metrics.Register("nHtmlRequests", nHtmlRequests)
 
 	// Respond with a function call every time they are called
 	metrics.NewRegisteredFunctionalGauge("ngoroutines", metrics.DefaultRegistry, func() int64 { return int64(runtime.NumGoroutine()) })
@@ -42,6 +47,7 @@ type ServerConfig struct {
 	BuildBranch         string
 	Index               bleve.Index
 	ShouldValidateAlexa bool
+	template            *template.Template
 }
 
 func (s *ServerConfig) VersionString() string {
@@ -55,11 +61,17 @@ func (s *ServerConfig) StartServer() {
 		"branch": s.BuildBranch,
 	}).Info("Starting server")
 
+	var err error
+	s.template, err = template.New("ServerTemplate").Parse(templateSource)
+	if err != nil {
+		panic(err)
+	}
+
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	r.Use(ginrus.Ginrus(log.StandardLogger(), time.RFC3339, true))
 	r.Use(gin.Recovery())
-	r.GET("/", versionHandler(s))
+	r.GET("/", htmlHandler(s))
 	r.GET("/opt/version", versionHandler(s))
 	r.GET("/opt/metrics", gin.WrapH(exp.ExpHandler(metrics.DefaultRegistry)))
 	r.GET("/search", searchHandler(s))
@@ -154,3 +166,50 @@ func alexaSearchHandler(s *ServerConfig) gin.HandlerFunc {
 		}
 	}
 }
+
+// Home page
+const templateSource string = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>{{ $.Title }}</title>
+<style type="text/css">
+#results {
+    list-style: none;
+    padding-left: 2px;
+}
+#results li {
+    padding-bottom: 1em;
+}
+#results li div[name=chapter-verse] {
+	display: inline
+}
+</style>
+</head>
+<body>
+	<h2>{{ $.Headline }}</h2>
+	<div id="help">Query language reference: <a href="http://godoc.org/github.com/blevesearch/bleve#NewQueryStringQuery">bleve</a></div>
+	<form action="/" method="GET">
+	<input type="text" name="q">
+    <br>
+    <input type="submit" class="button" value="query string">
+	</form>
+{{ if $.ReturnResults }}
+	<hr>
+	<ul id="results">
+	{{range $message := $.Hits }}
+	<li>
+		<span name="book">{{ $message.Fields.Book }}</span>
+		<div name="chapter-verse">
+			<span name="chapter">{{ $message.Fields.Chapter }}</span> : <span name="verse">{{ $message.Fields.Verse }}</span>
+		</div>
+		(<span name="version">{{ $message.Fields.Version }}</span>)
+		<span name="text">{{ $message.Fields.Text }}</span>
+	</li>
+	{{ end }}
+	</ul>
+{{ end }}
+</body>
+</html>
+`
