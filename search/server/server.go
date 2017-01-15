@@ -97,6 +97,13 @@ func alexaSearchHandler(s *ServerConfig) gin.HandlerFunc {
 			return
 		}
 
+		if s.ShouldValidateAlexa {
+			if err := s.validateAppId(c, req); err != nil {
+				// Actual response is set inside this function
+				return
+			}
+		}
+
 		t, err := getRequestType(req)
 		if err != nil {
 			log.WithFields(log.Fields{
