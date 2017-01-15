@@ -47,6 +47,9 @@ func searchHandler(s *ServerConfig) gin.HandlerFunc {
 			return
 		}
 
+		// highlight?
+		_, shouldHighlight := c.GetQuery("highlight")
+
 		query := bleve.NewQueryStringQuery(q)
 		searchRequest := bleve.NewSearchRequestOptions(query, 10, 0, false)
 		searchRequest.Fields = []string{
@@ -55,6 +58,9 @@ func searchHandler(s *ServerConfig) gin.HandlerFunc {
 			"Chapter",
 			"Verse",
 			"Text",
+		}
+		if shouldHighlight {
+			searchRequest.Highlight = bleve.NewHighlightWithStyle("html")
 		}
 		searchRequest.Size = isize
 		searchRequest.From = ifrom
