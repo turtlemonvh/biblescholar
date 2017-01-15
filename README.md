@@ -1,6 +1,14 @@
 # Bible Search
 
-An application for searching several versions of the Bible at the same time.  The plan is to hook set this up as an Alexa skill before the end of the year.
+An application for searching several versions of the Bible at the same time.
+
+See [this series of blog posts](http://turtlemonvh.github.io/tag/biblescholar.html) for information about the set up, including:
+
+* scraping data
+* working with bleve
+* deploying a skill to AWS Elasticbeanstalk
+* handling security requirements for Alexa apps (esp. SSL configuration)
+* and more!
 
 ## Structure
 
@@ -13,10 +21,21 @@ See the `search` folder for a golang app to index and search this data.
 This will create a TSV called "ESV.tsv" with the entire contents of this translation in a single TSV file.
 
 ```bash
-# Inside the 'scrape' directory
+cd scrape
 export TRANSLATION=ESV
 python batchprocess.py
+```
 
+## Running the server
+
+```bash
+cd search
+
+# Build for mac
+make darwin
+
+# Run the web server
+./artifacts/biblescholar-darwin-amd64 server -p 8080
 ```
 
 ## TODO
