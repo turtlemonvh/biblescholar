@@ -126,7 +126,6 @@ var respTemplate string = `
 }
 `
 
-// Probably don't have to return the container object
 func setResponseText(ro *gabs.Container, txt string, title string, reprompt bool) error {
 	responsePath := "outputSpeech"
 	if reprompt {
@@ -224,7 +223,6 @@ func (s *ServerConfig) handleSessionEndedRequest(c *gin.Context, req *gabs.Conta
 }
 
 // Completely handle intent requests
-// FIXME: Handle empty slots with a prompt
 func (s *ServerConfig) handleIntentRequest(c *gin.Context, req *gabs.Container, resp *gabs.Container) {
 	// All searches end after 1 request
 	resp.SetP(true, "response.shouldEndSession")

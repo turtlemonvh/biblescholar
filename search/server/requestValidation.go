@@ -52,7 +52,6 @@ func (s *ServerConfig) validateAppId(c *gin.Context, req *gabs.Container) error 
 	return nil
 }
 
-// FIXME: Implement: verifyCertURL, readCert
 // Required to be called in production
 // From: https://github.com/mikeflynn/go-alexa/blob/master/skillserver/skillserver.go#L154
 func (s *ServerConfig) verifyRequestIsAlexa(c *gin.Context) error {

@@ -39,6 +39,7 @@ func (s *ServerConfig) StartServer() {
 	r.Use(ginrus.Ginrus(log.StandardLogger(), time.RFC3339, true))
 	r.Use(gin.Recovery())
 	r.GET("/", versionHandler(s))
+	r.GET("/search", searchHandler(s))
 	r.POST("/alexa/search", alexaSearchHandler(s))
 
 	log.WithFields(log.Fields{
