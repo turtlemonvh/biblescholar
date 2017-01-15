@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"runtime"
 	"time"
 
 	"github.com/Jeffail/gabs"
@@ -10,9 +11,29 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/gin-gonic/contrib/ginrus"
 	"github.com/gin-gonic/gin"
+	"github.com/rcrowley/go-metrics"
+	"github.com/rcrowley/go-metrics/exp"
 	//"github.com/rcrowley/go-metrics/exp"
 	"gopkg.in/tylerb/graceful.v1"
 )
+
+var (
+	nAlexRequests metrics.Counter
+	nRestRequests metrics.Counter
+)
+
+func init() {
+	nAlexRequests = metrics.NewCounter()
+	metrics.Register("nAlexRequests", nAlexRequests)
+
+	nRestRequests = metrics.NewCounter()
+	metrics.Register("nRestRequests", nRestRequests)
+
+	// Respond with a function call every time they are called
+	metrics.NewRegisteredFunctionalGauge("ngoroutines", metrics.DefaultRegistry, func() int64 { return int64(runtime.NumGoroutine()) })
+	metrics.NewRegisteredFunctionalGauge("ncgocalls", metrics.DefaultRegistry, func() int64 { return int64(runtime.NumCgoCall()) })
+	metrics.NewRegisteredFunctionalGauge("ncpus", metrics.DefaultRegistry, func() int64 { return int64(runtime.NumCPU()) })
+}
 
 type ServerConfig struct {
 	Port int
@@ -39,6 +60,8 @@ func (s *ServerConfig) StartServer() {
 	r.Use(ginrus.Ginrus(log.StandardLogger(), time.RFC3339, true))
 	r.Use(gin.Recovery())
 	r.GET("/", versionHandler(s))
+	r.GET("/opt/version", versionHandler(s))
+	r.GET("/opt/metrics", gin.WrapH(exp.ExpHandler(metrics.DefaultRegistry)))
 	r.GET("/search", searchHandler(s))
 	r.POST("/alexa/search", alexaSearchHandler(s))
 
@@ -67,10 +90,10 @@ func (s *ServerConfig) StartServer() {
 // Return version status information
 func versionHandler(s *ServerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.JSON(200, map[string]interface{}{
-			"commit": s.BuildCommit,
-			"branch": s.BuildBranch,
-		})
+		status := make(map[string]interface{})
+		status["commit"] = s.BuildCommit
+		status["branch"] = s.BuildBranch
+		c.JSON(200, status)
 	}
 }
 
@@ -79,6 +102,8 @@ func versionHandler(s *ServerConfig) gin.HandlerFunc {
 // FIXME: Break down into smaller functions
 func alexaSearchHandler(s *ServerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		nAlexRequests.Inc(1)
+
 		if s.ShouldValidateAlexa {
 			if err := s.verifyRequestIsAlexa(c); err != nil {
 				// Actual response is set inside this function

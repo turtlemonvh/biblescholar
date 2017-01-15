@@ -12,6 +12,8 @@ import (
 // Handle a general search query via q query param
 func searchHandler(s *ServerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		nRestRequests.Inc(1)
+
 		// Query, required
 		q, exists := c.GetQuery("q")
 		if !exists {
