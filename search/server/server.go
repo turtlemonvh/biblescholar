@@ -168,6 +168,7 @@ func alexaSearchHandler(s *ServerConfig) gin.HandlerFunc {
 }
 
 // Home page
+// Heavily borrowed from: https://github.com/ekanite/ekanite/blob/master/server_http.go
 const templateSource string = `
 <!DOCTYPE html>
 <html>
@@ -185,15 +186,25 @@ const templateSource string = `
 #results li div[name=chapter-verse] {
 	display: inline
 }
+input[name=q] {
+	width: 30em;
+}
 </style>
 </head>
 <body>
 	<h2>{{ $.Headline }}</h2>
 	<div id="help">Query language reference: <a href="http://godoc.org/github.com/blevesearch/bleve#NewQueryStringQuery">bleve</a></div>
 	<form action="/" method="GET">
-	<input type="text" name="q">
-    <br>
-    <input type="submit" class="button" value="query string">
+	<input type="text" name="q" value="{{ $.Query }}">
+	<label for="size" datalabel="size">Num Results:</label>
+	<select name="size">
+        <!-- Show previously selected first, even if there is duplication. Clean up when switching to js. -->
+        <option value="{{ $.Size }}" selected="selected">{{ $.Size }}</option>
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="100">100</option>
+	</select>
+    <input type="submit" class="button" value="search">
 	</form>
 {{ if $.ReturnResults }}
 	<hr>
@@ -202,7 +213,7 @@ const templateSource string = `
 	<li>
 		<span name="book">{{ $message.Fields.Book }}</span>
 		<div name="chapter-verse">
-			<span name="chapter">{{ $message.Fields.Chapter }}</span> : <span name="verse">{{ $message.Fields.Verse }}</span>
+			<span name="chapter">{{ $message.Fields.Chapter }}</span>:<span name="verse">{{ $message.Fields.Verse }}</span>
 		</div>
 		(<span name="version">{{ $message.Fields.Version }}</span>)
 		<span name="text">{{ $message.Fields.Text }}</span>

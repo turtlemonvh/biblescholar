@@ -129,11 +129,15 @@ func htmlHandler(s *ServerConfig) gin.HandlerFunc {
 		data := struct {
 			Title         string
 			Headline      string
+			Query         string
+			Size          int
 			ReturnResults bool
 			Hits          search.DocumentMatchCollection
 		}{
 			"BibleScholar query interface",
 			fmt.Sprintf(`BibleScholar - Listing %d of %d results for "%s" (%s)`, len(searchResult.Hits), searchResult.Total, userQuery, dur.String()),
+			userQuery,
+			searchRequest.Size,
 			true,
 			searchResult.Hits,
 		}
