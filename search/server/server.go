@@ -188,7 +188,9 @@ body > * {
 	padding-left: 5px;
 }
 body hr {
-	padding: 5px;
+    margin: 5px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 form.ui.form {
     max-width: 30em;
