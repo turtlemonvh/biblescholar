@@ -1,6 +1,6 @@
 # Bible Search
 
-An application for searching several versions of the Bible at the same time.
+An application for searching several versions of the Bible at the same time, esp. with Alexa.
 
 See [this series of blog posts](http://turtlemonvh.github.io/tag/biblescholar.html) for information about the set up, including:
 
@@ -9,6 +9,8 @@ See [this series of blog posts](http://turtlemonvh.github.io/tag/biblescholar.ht
 * deploying a skill to AWS Elasticbeanstalk
 * handling security requirements for Alexa apps (esp. SSL configuration)
 * and more!
+
+Deployed to [https://www.biblescholarsearch.net/](https://www.biblescholarsearch.net/).
 
 ## Structure
 
