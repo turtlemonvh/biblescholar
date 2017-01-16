@@ -175,51 +175,67 @@ const templateSource string = `
 <head>
 <meta charset="utf-8" />
 <title>{{ $.Title }}</title>
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.7/semantic.css">
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.7/components/card.min.css">
 <style type="text/css">
-#results {
-    list-style: none;
-    padding-left: 2px;
-}
-#results li {
-    padding-bottom: 1em;
-}
-#results li div[name=chapter-verse] {
+#results div.card div[name=chapter-verse] {
 	display: inline
 }
 input[name=q] {
 	width: 30em;
+}
+body > * {
+	padding-left: 5px;
+}
+body hr {
+	padding: 5px;
+}
+form.ui.form {
+    max-width: 30em;
 }
 </style>
 </head>
 <body>
 	<h2>{{ $.Headline }}</h2>
 	<div id="help">Query language reference: <a href="http://godoc.org/github.com/blevesearch/bleve#NewQueryStringQuery">bleve</a></div>
-	<form action="/" method="GET">
-	<input type="text" name="q" value="{{ $.Query }}">
-	<label for="size" datalabel="size">Num Results:</label>
-	<select name="size">
-        <!-- Show previously selected first, even if there is duplication. Clean up when switching to js. -->
-        <option value="{{ $.Size }}" selected="selected">{{ $.Size }}</option>
-        <option value="10">10</option>
-        <option value="20">20</option>
-        <option value="100">100</option>
-	</select>
-    <input type="submit" class="button" value="search">
+	<form class="ui form" action="/" method="GET">
+	  <div class="field">
+	    <label>Query</label>
+	    <input type="text" name="q" value="{{ $.Query }}">
+	  </div>
+	  <div class="field">
+	    <label>Num Results</label>
+		<select name="size" class="ui fluid dropdown">
+			<!-- Show previously selected first, even if there is duplication. Clean up when switching to js. -->
+			<option value="{{ $.Size }}" selected="selected">{{ $.Size }}</option>
+			<option value="10">10</option>
+			<option value="20">20</option>
+			<option value="100">100</option>
+		</select>
+	  </div>
+	  <button class="ui button" type="submit">Search</button>
 	</form>
 {{ if $.ReturnResults }}
 	<hr>
-	<ul id="results">
-	{{range $message := $.Hits }}
-	<li>
-		<span name="book">{{ $message.Fields.Book }}</span>
-		<div name="chapter-verse">
-			<span name="chapter">{{ $message.Fields.Chapter }}</span>:<span name="verse">{{ $message.Fields.Verse }}</span>
+	<div id="results" class="ui link cards">
+	{{range $nresult, $result := $.Hits }}
+		<div class="ui card">
+		  <div class="content">
+		    <div class="header">
+				<span name="book">{{ $result.Fields.Book }}</span>
+				<div name="chapter-verse">
+					<span name="chapter">{{ $result.Fields.Chapter }}</span>:<span name="verse">{{ $result.Fields.Verse }}</span>
+				</div>
+		    </div>
+		    <div class="meta">
+		      <span name="nresult">{{ $nresult }}</span>
+		      <span name="version">{{ $result.Fields.Version }}</span>
+		    </div>
+		    <p name="text">{{ $result.Fields.Text }}</p>
+		  </div>
 		</div>
-		(<span name="version">{{ $message.Fields.Version }}</span>)
-		<span name="text">{{ $message.Fields.Text }}</span>
-	</li>
 	{{ end }}
-	</ul>
+	</div>
 {{ end }}
 </body>
 </html>
