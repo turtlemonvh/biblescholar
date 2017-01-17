@@ -219,7 +219,11 @@ func (s *ServerConfig) handleSessionEndedRequest(c *gin.Context, req *gabs.Conta
 	log.WithFields(log.Fields{
 		"reason": req.Path("reason"),
 	}).Info("Session ended")
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{
+		"response": map[string]interface{}{
+			"shouldEndSession": true,
+		},
+	})
 }
 
 // Completely handle intent requests
@@ -238,6 +242,13 @@ func (s *ServerConfig) handleIntentRequest(c *gin.Context, req *gabs.Container, 
 	}
 
 	intent, ok := req.Path(requestIntentNamePath).Data().(string)
+
+	// https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-voice-interface-and-user-experience-testing?ref_=pe_679090_102923190#stopping-and-canceling
+	if intent == "AMAZON.StopIntent" || intent == "AMAZON.CancelIntent" {
+		s.handleSessionEndedRequest(c, req, resp)
+		return
+	}
+
 	if !ok || intent != "SearchBible" {
 		// We only handle this one intent
 		log.WithFields(log.Fields{
