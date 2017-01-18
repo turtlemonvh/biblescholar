@@ -10,7 +10,10 @@ See [this series of blog posts](http://turtlemonvh.github.io/tag/biblescholar.ht
 * handling security requirements for Alexa apps (esp. SSL configuration)
 * and more!
 
-Deployed to [https://www.biblescholarsearch.net/](https://www.biblescholarsearch.net/).
+Deployed to
+
+* Website: [https://www.biblescholarsearch.net/](https://www.biblescholarsearch.net/)
+* Amazon Alexa App Store: [https://www.amazon.com/dp/B01N4JOMQ3/](https://www.amazon.com/dp/B01N4JOMQ3/)
 
 ## Structure
 
