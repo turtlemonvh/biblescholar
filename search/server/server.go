@@ -74,6 +74,9 @@ func (s *ServerConfig) StartServer() {
 	r.GET("/", htmlHandler(s))
 	r.GET("/opt/version", versionHandler(s))
 	r.GET("/opt/metrics", gin.WrapH(exp.ExpHandler(metrics.DefaultRegistry)))
+	r.GET("/opt/mapping", func(c *gin.Context) {
+		c.JSON(200, s.Index.Mapping())
+	})
 	r.GET("/search", searchHandler(s))
 	r.POST("/alexa/search", alexaSearchHandler(s))
 

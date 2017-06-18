@@ -85,7 +85,7 @@ var indexCmd = &cobra.Command{
 		HandleLogLevel()
 
 		index := biblescholar.CreateOrOpenIndex(viper.GetString("index-path"))
-		fmt.Println("Adding content to: ", index)
+		fmt.Println("Adding content to: ", viper.GetString("index-path"))
 
 		_, err := biblescholar.IndexFromTSVs(index, viper.GetString("data-dir"))
 		if err != nil {

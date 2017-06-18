@@ -11,11 +11,6 @@ COMMIT=$(shell git rev-parse HEAD)
 BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 GITHUB_USERNAME=turtlemonvh
 
-# For symlinks
-PROJECT_BASE_DIR=$(shell dirname $$(pwd))
-GOPATH_BASE_DIR=${GOPATH}/src/github.com/${GITHUB_USERNAME}/biblescholar
-GOPATH_BASE_DIR_LINK=$(shell readlink ${GOPATH_BASE_DIR})
-
 # Core path variables
 BUILD_DIR=${GOPATH}/src/github.com/${GITHUB_USERNAME}/biblescholar/search
 BINARY_BUILD_DIR=${BUILD_DIR}/command
@@ -25,38 +20,24 @@ ARTIFACT_DIR=${BUILD_DIR}/artifacts
 LDFLAGS = -ldflags "-X main.buildCommit=${COMMIT} -X main.buildBranch=${BRANCH}"
 
 # Build the project
-all: link clean test vet linux darwin windows elbzip
-
-link:
-	PROJECT_BASE_DIR=${PROJECT_BASE_DIR} ; \
-	GOPATH_BASE_DIR=${GOPATH_BASE_DIR} ; \
-	GOPATH_BASE_DIR_LINK=${GOPATH_BASE_DIR_LINK} ; \
-	if [ "$${GOPATH_BASE_DIR_LINK}" != "$${PROJECT_BASE_DIR}" ] ; then \
-	    echo "Fixing symlinks for build" ; \
-	    rm -f $${GOPATH_BASE_DIR} ; \
-	    ln -s $${PROJECT_BASE_DIR} $${GOPATH_BASE_DIR} ; \
-	fi
+all: clean test vet linux darwin windows elbzip
 
 artifactdir:
 	mkdir -p ${ARTIFACT_DIR}
 
-linux: link artifactdir
-	cd ${BINARY_BUILD_DIR}; \
-	GOOS=linux GOARCH=${GOARCH} go build ${LDFLAGS} -o ${BINARY}-linux-${GOARCH} . ; \
-	mv ${BINARY}-linux-${GOARCH} ${ARTIFACT_DIR}/ ; \
-	cd - >/dev/null
+linux: artifactdir
+	GOOS=linux GOARCH=${GOARCH} go build ${LDFLAGS} -o ${BINARY}-linux-${GOARCH} .
+	mv ${BINARY}-linux-${GOARCH} ${ARTIFACT_DIR}/ 
 
-darwin: link artifactdir
-	cd ${BINARY_BUILD_DIR}; \
-	GOOS=darwin GOARCH=${GOARCH} go build ${LDFLAGS} -o ${BINARY}-darwin-${GOARCH} . ; \
-	mv ${BINARY}-darwin-${GOARCH} ${ARTIFACT_DIR}/ ; \
-	cd - >/dev/null
+darwin: artifactdir
+	cd command ; \
+	GOOS=darwin GOARCH=${GOARCH} go build ${LDFLAGS} -o ${BINARY}-darwin-${GOARCH} .  ; \
+	mv ${BINARY}-darwin-${GOARCH} ${ARTIFACT_DIR}/  ; \
+	cd --
 
-windows: link artifactdir
-	cd ${BINARY_BUILD_DIR}; \
-	GOOS=windows GOARCH=${GOARCH} go build ${LDFLAGS} -o ${BINARY}-windows-${GOARCH}.exe . ; \
-	mv ${BINARY}-windows-${GOARCH}.exe ${ARTIFACT_DIR}/ ; \
-	cd - >/dev/null
+windows: artifactdir
+	GOOS=windows GOARCH=${GOARCH} go build ${LDFLAGS} -o ${BINARY}-windows-${GOARCH}.exe . 
+	mv ${BINARY}-windows-${GOARCH}.exe ${ARTIFACT_DIR}/
 
 elbzip: linux
 	# Make elasticbeanstalk artifact
@@ -69,23 +50,17 @@ elbzip: linux
 
 test: artifactdir
 	if ! hash go2xunit 2>/dev/null; then go install github.com/tebeka/go2xunit; fi
-	cd ${BUILD_DIR}; \
-	go test -v ./... 2>&1 | go2xunit -output ${TEST_REPORT} ; \
-	mv ${TEST_REPORT} ${ARTIFACT_DIR}/ ; \
-	cd - >/dev/null
+	go test -v ./... 2>&1 | go2xunit -output ${TEST_REPORT} 
+	mv ${TEST_REPORT} ${ARTIFACT_DIR}/ 
 
 vet: artifactdir
-	-cd ${BUILD_DIR}; \
-	go vet ./... > ${VET_REPORT} 2>&1 ; \
-	mv ${VET_REPORT} ${ARTIFACT_DIR}/ ; \
-	cd - >/dev/null
+	go vet ./... > ${VET_REPORT} 2>&1 
+	mv ${VET_REPORT} ${ARTIFACT_DIR}/ 
 
 fmt:
-	cd ${BUILD_DIR}; \
-	go fmt $$(go list ./... | grep -v /vendor/) ; \
-	cd - >/dev/null
+	go fmt $$(go list ./... | grep -v /vendor/) 
 
 clean:
 	-rm -rf ${ARTIFACT_DIR}
 
-.PHONY: link linux darwin windows test vet fmt clean elbzip
+.PHONY: linux darwin windows test vet fmt clean elbzip

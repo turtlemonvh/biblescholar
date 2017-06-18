@@ -86,6 +86,17 @@ func (s *ServerConfig) processQueryParams(c *gin.Context, defaultQuery *string) 
 	searchRequest.Size = isize
 	searchRequest.From = ifrom
 
+	// Facets
+	versionsFacet := bleve.NewFacetRequest("Version", 4)
+	searchRequest.AddFacet("versions", versionsFacet)
+
+	booksFacet := bleve.NewFacetRequest("Book", 20)
+	searchRequest.AddFacet("books", booksFacet)
+
+	// 1 for every combination
+	versionBooksFacet := bleve.NewFacetRequest("VersionBook", 66*4)
+	searchRequest.AddFacet("versionBooks", versionBooksFacet)
+
 	return searchRequest, nil
 }
 

@@ -3,7 +3,9 @@ package biblescholar
 import (
 	"encoding/csv"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/blevesearch/bleve"
+	"github.com/blevesearch/bleve/analysis/analyzer/keyword"
 	"io"
 	"os"
 	"path/filepath"
@@ -14,13 +16,54 @@ const DefaultIndexName = "verses.bleve"
 
 func CreateOrOpenIndex(indexName string) bleve.Index {
 	var index bleve.Index
-	if _, err := os.Stat(indexName); os.IsNotExist(err) {
-		mapping := bleve.NewIndexMapping()
-		index, _ = bleve.New(indexName, mapping)
-	} else {
-		index, _ = bleve.Open(indexName)
-	}
+	var err error
+	if _, err = os.Stat(indexName); os.IsNotExist(err) {
+		idxMapping := bleve.NewIndexMapping()
 
+		// Add field mappings
+		textMapping := bleve.NewTextFieldMapping()
+		textMapping.Analyzer = "en"
+		textMapping.IncludeInAll = true
+
+		bookMapping := bleve.NewTextFieldMapping()
+		bookMapping.Analyzer = keyword.Name
+		bookMapping.IncludeInAll = false
+		bookMapping.IncludeTermVectors = false
+
+		versionMapping := bleve.NewTextFieldMapping()
+		versionMapping.Analyzer = keyword.Name
+		versionMapping.IncludeInAll = false
+		versionMapping.IncludeTermVectors = false
+
+		versionBookMapping := bleve.NewTextFieldMapping()
+		versionBookMapping.Analyzer = keyword.Name
+		versionBookMapping.IncludeInAll = false
+		versionBookMapping.IncludeTermVectors = false
+
+		chapterMapping := bleve.NewNumericFieldMapping()
+		chapterMapping.IncludeInAll = false
+
+		verseMapping := bleve.NewNumericFieldMapping()
+		verseMapping.IncludeInAll = false
+
+		// Add document mapping, including field mappings
+		docMapping := bleve.NewDocumentStaticMapping()
+		docMapping.AddFieldMappingsAt("Book", bookMapping)
+		docMapping.AddFieldMappingsAt("Version", versionMapping)
+		docMapping.AddFieldMappingsAt("VersionBook", versionBookMapping)
+		docMapping.AddFieldMappingsAt("Chapter", chapterMapping)
+		docMapping.AddFieldMappingsAt("Verse", verseMapping)
+		docMapping.AddFieldMappingsAt("Text", textMapping)
+		docMapping.Dynamic = false
+		idxMapping.AddDocumentMapping("verse", docMapping)
+
+		index, err = bleve.New(indexName, idxMapping)
+	} else {
+		index, err = bleve.Open(indexName)
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
 	return index
 }
 
@@ -58,6 +101,8 @@ func IndexFromTSVs(index bleve.Index, dirpath string) (int, error) {
 			}
 
 			verse := NewVerseFromLine(record)
+
+			// FIXME: Check for error
 			b.Index(verse.Id(), verse)
 
 			nindexedPerFile++
