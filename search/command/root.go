@@ -62,8 +62,8 @@ func HandleLogLevel() {
 }
 
 var RootCmd = &cobra.Command{
-	Use:   "bblsearch",
-	Short: "bblsearch is a search interface for the Bible",
+	Use:   os.Args[0],
+	Short: fmt.Sprintf("%s is a search interface for the Bible", os.Args[0]),
 	Run: func(cmd *cobra.Command, args []string) {
 		InitializeConfig()
 		fmt.Printf("bblsearch %s (%s)\n", buildBranch, buildCommit)
