@@ -25,6 +25,7 @@ make darwin
 
 ```bash
 # Use the built in bleve search tool to query the index
+# After "go install github.com/blevesearch/bleve/cmd/bleve"
 bleve query verses.bleve "for God so loved the world"
 ```
 
@@ -73,11 +74,11 @@ docker build -t biblescholar .
 # DO NOT try to run with the index mounted as a volume. Bleve will panic when it tries to work with a fs mutex. :(
 docker run -it -d --name biblescholar -p 8000:80 biblescholar
 
-# Access via docker machine's IP
-curl $(docker-machine ip):8000
+# Test request
+curl localhost:8000
 
 # Try a more complex request
-curl -s -X POST $(docker-machine ip):8000/alexa/search -d '@test/exampleAlexaRequest.json'
+curl -s -X POST localhost:8000/alexa/search -d '@test/exampleAlexaRequest.json'
 ```
 
 ### Domain name
@@ -97,7 +98,6 @@ curl -X GET "$url/search?q=cats%20dogs&size=2&highlight" | jq .
 
 ## TODO
 
-* Fix issues with glide dependency-locking actively edited sibling modules
 * Work with richer struct types instead of raw gabs objects for request handling
 * Try out running docker locally this way
     * https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_docker-eblocal.html

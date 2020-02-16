@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN mkdir -p /usr/local/bin
 WORKDIR /usr/local/bin
-COPY biblescholar-linux-amd64 /usr/local/bin/
+COPY artifacts/biblescholar-linux-amd64 /usr/local/bin/
 
 # Just copy data in
 COPY verses.bleve /data/verses.bleve
