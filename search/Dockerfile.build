@@ -1,7 +1,7 @@
 # A version of the dockerfile that builds the application inside
 # Used to test if cross compiling was a problem. It was not the problem.
 
-FROM golang:1.7
+FROM golang:1.13
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libleveldb-dev \

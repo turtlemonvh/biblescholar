@@ -1,6 +1,6 @@
 # Bible Search
 
-A go application using bleve to index tsvs of Bible verses.
+A go application using bleve to index tsvs of Bible verses. Uses go modules and go 1.13+.
 
 ## Basic usage
 
@@ -18,7 +18,7 @@ make darwin
 
 ```bash
 # Run the index command using ESV tsv files
-artifacts/biblescholar-darwin-amd64 index -d ../downloads/*-ESV.tsv
+./artifacts/biblescholar-darwin-amd64 index -d ../scrape
 ```
 
 ### Text search
