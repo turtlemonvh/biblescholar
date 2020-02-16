@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	"github.com/Jeffail/gabs"
-	log "github.com/Sirupsen/logrus"
 	"github.com/blevesearch/bleve"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 )
 
 const (

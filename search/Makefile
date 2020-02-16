@@ -12,9 +12,8 @@ BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 GITHUB_USERNAME=turtlemonvh
 
 # Core path variables
-BUILD_DIR=${GOPATH}/src/github.com/${GITHUB_USERNAME}/biblescholar/search
-BINARY_BUILD_DIR=${BUILD_DIR}/command
-ARTIFACT_DIR=${BUILD_DIR}/artifacts
+BINARY_BUILD_DIR=./command
+ARTIFACT_DIR=./artifacts
 
 # Setup the -ldflags option for go build here, interpolate the variable values
 LDFLAGS = -ldflags "-X main.buildCommit=${COMMIT} -X main.buildBranch=${BRANCH}"
@@ -26,17 +25,15 @@ artifactdir:
 	mkdir -p ${ARTIFACT_DIR}
 
 linux: artifactdir
-	GOOS=linux GOARCH=${GOARCH} go build ${LDFLAGS} -o ${BINARY}-linux-${GOARCH} .
+	GOOS=linux GOARCH=${GOARCH} go build ${LDFLAGS} -o ${BINARY}-linux-${GOARCH} ./command
 	mv ${BINARY}-linux-${GOARCH} ${ARTIFACT_DIR}/ 
 
 darwin: artifactdir
-	cd command ; \
-	GOOS=darwin GOARCH=${GOARCH} go build ${LDFLAGS} -o ${BINARY}-darwin-${GOARCH} .  ; \
-	mv ${BINARY}-darwin-${GOARCH} ${ARTIFACT_DIR}/  ; \
-	cd --
+	GOOS=darwin GOARCH=${GOARCH} go build ${LDFLAGS} -o ${BINARY}-darwin-${GOARCH} ./command
+	mv ${BINARY}-darwin-${GOARCH} ${ARTIFACT_DIR}/
 
 windows: artifactdir
-	GOOS=windows GOARCH=${GOARCH} go build ${LDFLAGS} -o ${BINARY}-windows-${GOARCH}.exe . 
+	GOOS=windows GOARCH=${GOARCH} go build ${LDFLAGS} -o ${BINARY}-windows-${GOARCH}.exe ./command
 	mv ${BINARY}-windows-${GOARCH}.exe ${ARTIFACT_DIR}/
 
 elbzip: linux
@@ -58,7 +55,7 @@ vet: artifactdir
 	mv ${VET_REPORT} ${ARTIFACT_DIR}/ 
 
 fmt:
-	go fmt $$(go list ./... | grep -v /vendor/) 
+	go fmt $$(go list ./...) 
 
 clean:
 	-rm -rf ${ARTIFACT_DIR}

@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	log "github.com/Sirupsen/logrus"
+	"os"
+
 	"github.com/blevesearch/bleve"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/turtlemonvh/biblescholar/search"
+	biblescholar "github.com/turtlemonvh/biblescholar/search"
 	"github.com/turtlemonvh/biblescholar/search/server"
-	"os"
 )
 
 /*

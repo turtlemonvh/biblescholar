@@ -10,8 +10,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/Jeffail/gabs"
-	"github.com/gin-gonic/gin"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -19,7 +17,10 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Jeffail/gabs"
+	"github.com/gin-gonic/gin"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (

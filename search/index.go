@@ -3,13 +3,14 @@ package biblescholar
 import (
 	"encoding/csv"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
-	"github.com/blevesearch/bleve"
-	"github.com/blevesearch/bleve/analysis/analyzer/keyword"
 	"io"
 	"os"
 	"path/filepath"
 	"unicode/utf8"
+
+	"github.com/blevesearch/bleve"
+	"github.com/blevesearch/bleve/analysis/analyzer/keyword"
+	log "github.com/sirupsen/logrus"
 )
 
 const DefaultIndexName = "verses.bleve"

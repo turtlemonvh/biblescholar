@@ -8,12 +8,13 @@ import (
 	"time"
 
 	"github.com/Jeffail/gabs"
-	log "github.com/Sirupsen/logrus"
 	"github.com/blevesearch/bleve"
 	"github.com/gin-gonic/contrib/ginrus"
 	"github.com/gin-gonic/gin"
 	"github.com/rcrowley/go-metrics"
 	"github.com/rcrowley/go-metrics/exp"
+	log "github.com/sirupsen/logrus"
+
 	//"github.com/rcrowley/go-metrics/exp"
 	"gopkg.in/tylerb/graceful.v1"
 )

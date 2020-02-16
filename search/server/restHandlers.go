@@ -2,14 +2,15 @@ package server
 
 import (
 	"fmt"
-	log "github.com/Sirupsen/logrus"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/search"
 	"github.com/blevesearch/bleve/search/query"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strconv"
-	"time"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
