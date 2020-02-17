@@ -69,8 +69,17 @@ func (s *ServerConfig) processQueryParams(c *gin.Context, defaultQuery *string) 
 		return nilReq, err
 	}
 
+	// Facets, optional
+	facets, exists := c.GetQuery("facets")
+	if !exists {
+		facets = "off"
+	}
+
 	// highlight?
-	_, shouldHighlight := c.GetQuery("highlight")
+	highlight, exists := c.GetQuery("highlight")
+	if !exists {
+		highlight = "off"
+	}
 
 	query := bleve.NewQueryStringQuery(q)
 	searchRequest := bleve.NewSearchRequestOptions(query, 10, 0, false)
@@ -81,22 +90,24 @@ func (s *ServerConfig) processQueryParams(c *gin.Context, defaultQuery *string) 
 		"Verse",
 		"Text",
 	}
-	if shouldHighlight {
+	if highlight == "on" {
 		searchRequest.Highlight = bleve.NewHighlightWithStyle("html")
 	}
 	searchRequest.Size = isize
 	searchRequest.From = ifrom
 
 	// Facets
-	versionsFacet := bleve.NewFacetRequest("Version", 4)
-	searchRequest.AddFacet("versions", versionsFacet)
+	if facets == "on" {
+		versionsFacet := bleve.NewFacetRequest("Version", 4)
+		searchRequest.AddFacet("versions", versionsFacet)
 
-	booksFacet := bleve.NewFacetRequest("Book", 20)
-	searchRequest.AddFacet("books", booksFacet)
+		booksFacet := bleve.NewFacetRequest("Book", 66)
+		searchRequest.AddFacet("books", booksFacet)
 
-	// 1 for every combination
-	versionBooksFacet := bleve.NewFacetRequest("VersionBook", 66*4)
-	searchRequest.AddFacet("versionBooks", versionBooksFacet)
+		// 1 for every combination
+		versionBooksFacet := bleve.NewFacetRequest("VersionBook", 66*4)
+		searchRequest.AddFacet("versionBooks", versionBooksFacet)
+	}
 
 	return searchRequest, nil
 }
@@ -132,24 +143,29 @@ func htmlHandler(s *ServerConfig) gin.HandlerFunc {
 			"size":            searchRequest.Size,
 			"from":            searchRequest.From,
 			"nresults":        len(searchResult.Hits),
-			"shouldHighlight": (searchRequest.Highlight == nil),
+			"shouldHighlight": (searchRequest.Highlight != nil),
+			"facets":          (len(searchRequest.Facets) == 0),
 		}).Debug("Composed search object")
 
 		dur := time.Since(start)
 
 		// Initialize data for template
 		data := struct {
-			Title         string
-			Headline      string
-			Query         string
-			Size          int
-			ReturnResults bool
-			Hits          search.DocumentMatchCollection
+			Title           string
+			Headline        string
+			Query           string
+			Size            int
+			Facets          bool
+			ShouldHighlight bool
+			ReturnResults   bool
+			Hits            search.DocumentMatchCollection
 		}{
 			"BibleScholar query interface",
 			fmt.Sprintf(`BibleScholar - Listing %d of %d results for "%s" (%s)`, len(searchResult.Hits), searchResult.Total, userQuery, dur.String()),
 			userQuery,
 			searchRequest.Size,
+			len(searchRequest.Facets) != 0,
+			searchRequest.Highlight != nil,
 			true,
 			searchResult.Hits,
 		}
@@ -190,7 +206,8 @@ func searchHandler(s *ServerConfig) gin.HandlerFunc {
 			"size":            searchRequest.Size,
 			"from":            searchRequest.From,
 			"nresults":        len(searchResult.Hits),
-			"shouldHighlight": (searchRequest.Highlight == nil),
+			"shouldHighlight": (searchRequest.Highlight != nil),
+			"facets":          (len(searchRequest.Facets) == 0),
 		}).Debug("Composed search object")
 
 		c.JSON(http.StatusOK, searchResult)

@@ -63,7 +63,12 @@ func (s *ServerConfig) StartServer() {
 	}).Info("Starting server")
 
 	var err error
-	s.template, err = template.New("ServerTemplate").Parse(templateSource)
+	s.template, err = template.New("ServerTemplate").Funcs(template.FuncMap{
+		// Allow rendering of raw html
+		"raw": func(s string) template.HTML {
+			return template.HTML(s)
+		},
+	}).Parse(templateSource)
 	if err != nil {
 		panic(err)
 	}
@@ -199,6 +204,9 @@ body hr {
 form.ui.form {
     max-width: 30em;
 }
+div.text-results > mark {
+	background-color: #FFFF00;
+}
 </style>
 </head>
 <body>
@@ -219,6 +227,14 @@ form.ui.form {
 			<option value="100">100</option>
 		</select>
 	  </div>
+	  <div class="field">
+	    <label>Include facets?</label>
+	    <input type="checkbox" name="facets"{{ if $.Facets }} checked{{ end }}>
+	  </div>
+	  <div class="field">
+	    <label>Highlight hits?</label>
+	    <input type="checkbox" name="highlight"{{ if $.ShouldHighlight }} checked{{ end }}>
+	  </div>
 	  <button class="ui button" type="submit">Search</button>
 	</form>
 {{ if $.ReturnResults }}
@@ -236,8 +252,14 @@ form.ui.form {
 		    <div class="meta">
 		      <span name="nresult">{{ $nresult }}</span>
 		      <span name="version">{{ $result.Fields.Version }}</span>
-		    </div>
-		    <p name="text">{{ $result.Fields.Text }}</p>
+			</div>
+			{{ if $.ShouldHighlight }}
+			{{ range $fragment := $result.Fragments.Text }}
+			<div class="text-results">{{ raw $fragment }}</div>
+			{{ end }}
+			{{ else }}
+			<p name="text">{{ $result.Fields.Text }}</p>
+			{{ end }}
 		  </div>
 		</div>
 	{{ end }}
